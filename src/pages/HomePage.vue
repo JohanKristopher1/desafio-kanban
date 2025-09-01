@@ -7,7 +7,10 @@
       </v-row>
       <v-row>
         <v-col>
-          <v-text-fild prepend-icon="mdi-search" label="Busque por Titulo..."></v-text-fild>
+          <v-btn prepend-icon="mdi-filter-variant" color="#7C3AED" size="large">Filtra</v-btn>
+        </v-col>
+        <v-col cols="11">       
+          <v-text-field prepend-inner-icon="mdi-magnify" label="Busque por Titulo..." variant="solo-filled"></v-text-field>
         </v-col>
       </v-row>
       <v-row>
@@ -22,10 +25,12 @@ import TasksApiService from '@/services/tasks/tasks-api-service';
 import { defineComponent } from 'vue';
 import DraggableComponents from '@/components/DraggableComponents.vue';
 
+
 export default defineComponent({
     name: 'HomePage',
     components: {
-        DraggableComponents
+        DraggableComponents,
+        defineComponent
     },
     data() {
         return {
