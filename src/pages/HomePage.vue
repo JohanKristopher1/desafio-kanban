@@ -1,14 +1,32 @@
 <template>
     <main>
-      <defineComponent />
+      <v-row>
+        <v-col>
+          <defineComponent />
+        </v-col>
+      </v-row>
+      <v-row>
+        <v-col>
+          <v-text-fild prepend-icon="mdi-search" label="Busque por Titulo..."></v-text-fild>
+        </v-col>
+      </v-row>
+      <v-row>
+        <v-col>
+          <DraggableComponents />
+        </v-col>
+      </v-row>
     </main>
 </template>
 <script lang="ts">
 import TasksApiService from '@/services/tasks/tasks-api-service';
 import { defineComponent } from 'vue';
+import DraggableComponents from '@/components/DraggableComponents.vue';
 
 export default defineComponent({
     name: 'HomePage',
+    components: {
+        DraggableComponents
+    },
     data() {
         return {
             tasks: [] as any[],
