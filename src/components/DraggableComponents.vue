@@ -1,6 +1,14 @@
 <template>
-  <div class="row">
-    <div class="col-3">
+  <v-row>
+        <v-col>
+          <v-btn prepend-icon="mdi-filter-variant" color="#7C3AED" width="160px" height="60px">Filtra</v-btn>
+        </v-col>
+        <v-col cols="11">       
+          <v-text-field prepend-inner-icon="mdi-magnify" label="Busque por Titulo..." variant="solo-filled"  height="48px"></v-text-field>
+        </v-col>
+  </v-row>
+  <v-row display="flex" justify="space-around" align="center">
+      <v-col cols="4">
       <h3>A fazer</h3>
       <draggable class="list-group" :list="list1" group="people" @change="log" item-key="name">
         <template #item="{ element, index }">
@@ -9,9 +17,9 @@
             </div>
         </template>
       </draggable>
-    </div>
+      </v-col>
 
-    <div class="col-3">
+    <v-col cols="4">
       <h3>Fazendo</h3>
       <draggable class="list-group" :list="list2" group="people" @change="log" item-key="name">
         <template #item="{ element, index }">
@@ -20,9 +28,9 @@
             </div>
         </template>
       </draggable>
-    </div>
+    </v-col>
 
-    <div class="col-3">
+    <v-col cols="4">
       <h3>Feito</h3>
       <draggable class="list-group" :list="list3" group="people" @change="log" item-key="name">
         <template #item="{ element, index }">
@@ -31,17 +39,19 @@
             </div>
         </template>
       </draggable>
-    </div>
+    </v-col>
 
     <rawDisplayer class="col-3" :value="list1" title="List 1" />
 
     <rawDisplayer class="col-3" :value="list2" title="List 2" />
 
     <rawDisplayer class="col-3" :value="list3" title="List 3" />
-  </div>
+  </v-row>
 </template>
-<script>
+<script lang="ts">
 import draggable from "vuedraggable";
+import tasksApiService from "@/services/tasks/tasks-api-service";
+import { typeCard } from "@/types/card-types";
 
 export default {
   name: "two-lists",
@@ -52,39 +62,27 @@ export default {
   },
   data() {
     return {
-      list1: [
-        { name: "John", id: 1 },
-        { name: "Joao", id: 2 },
-        { name: "Jean", id: 3 },
-        { name: "Gerard", id: 4 }
-      ],
-      list2: [
-        { name: "Juan", id: 5 },
-        { name: "Edgard", id: 6 },
-        { name: "Johnson", id: 7 }
-      ],
-      list3: [
-        { name: "Jessika", id: 8 },
-        { name: "Paulo", id: 9 },
-        { name: "Johan", id: 10 }
-      ]
+      tasks: [] as typeCard[],
+      task: {} as typeCard
     };
   },
-  methods: {
-    add: function() {
-      this.list.push({ name: "Juan" });
-    },
-    replace: function() {
-      this.list = [{ name: "Edgard" }];
-    },
-    clone: function(el) {
-      return {
-        name: el.name + " cloned"
-      };
-    },
-    log: function(evt) {
-      window.console.log(evt);
+  async created() {
+    await tasksApiService.getAll().then((lista: typeCard[]) => {
+      this.tasks = lista;
+      console.log(this.tasks);
+    }).catch((error: typeCard) => {
+      console.error(`Erro: ${error.message}`);
+    }).finally(() => {
+      console.log('Requisição finalizada');
+    });
+  },
+  watch: {
+    async tasks(novoValor) {
+      console.log('Tasks atualizadas:', novoValor[0].id);
+
+      const tarefas = await tasksApiService.getId(novoValor[0].id);
+      this.task = tarefas;
     }
   }
-};
+} 
 </script>
