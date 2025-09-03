@@ -7,13 +7,13 @@
           <v-text-field prepend-inner-icon="mdi-magnify" label="Busque por Titulo..." variant="solo-filled"  height="48px"></v-text-field>
         </v-col>
   </v-row>
-  <v-row display="flex" justify="space-around" align="center">
-      <v-col cols="4"
+  <v-row display="flex" justify-space-between class="board">
+      <v-col class="column"
       v-for="(col, index) in colum"
       :key="index"
       >
       <h2>{{ col.name }}</h2>
-      <draggable  v-model="col.items" group="tasks" item-key="id">
+      <draggable  v-model="col.items" group="tasks" item-key="id" class="list">
         <template #item="{ element }">
           <div class="task">
             {{ element.title }}
@@ -31,9 +31,6 @@ import { typeCard } from "@/types/card-types";
 import { defineComponent } from "vue";
 
 export default defineComponent({
-  name: "two-lists",
-  display: "Two Lists",
-  order: 1,
   components: {
     draggable
   },
@@ -63,3 +60,28 @@ export default defineComponent({
   },
  })    
 </script>
+
+<style scoped>
+.column {
+  flex: 1;
+  background: #FFFFFF;
+}
+
+.list {
+  min-height: 200px;
+  border-radius: 10px;
+}
+
+.task {
+  background: #F3F4F6;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 8px;
+  margin: 8px;
+  cursor: grab;
+  box-shadow: #ddd 0px 1px 3px 0px, #ddd 0px 1px 2px 0px;
+  text-align: center;
+}
+
+
+</style>
