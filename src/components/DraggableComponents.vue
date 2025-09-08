@@ -40,7 +40,7 @@
   </v-row>
 
   <!-- Snackbar -->
-  <v-snackbar v-model="snackbar.show" :timeout="3000" :color="snackbar.color">
+  <v-snackbar v-model="snackbar.show" :timeout="3000" :color="snackbar.color" location="top end">
     {{ snackbar.text }}
   </v-snackbar>
 </template>
@@ -57,6 +57,7 @@ export default defineComponent({
     return {
       colum: [] as any[],
       tasks: [] as typeCard[],
+      task: {} as typeCard,
       snackbar: {
         show: false,
         text: "",
@@ -106,6 +107,7 @@ export default defineComponent({
 }
 
 .task {
+  position: relative;
   width: 350px;
   height: 150px;
   background: #FFFFFF;
@@ -118,5 +120,17 @@ export default defineComponent({
   text-align: center;
 }
 
+.delete-button {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  color: #7C7C8A;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.delete-button:hover {
+  color: #ef4444;
+}
 
 </style>
