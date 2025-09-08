@@ -3,7 +3,7 @@
         <v-col>
           <v-btn prepend-icon="mdi-filter-variant" color="#7C3AED" style="width: 160px; height: 60px;">Filtra</v-btn>
         </v-col>
-        <v-col cols="11">       
+        <v-col cols="10">       
           <v-text-field prepend-inner-icon="mdi-magnify" label="Busque por Titulo..." variant="solo-filled"  height="48px"></v-text-field>
         </v-col>
   </v-row>
@@ -17,9 +17,24 @@
         <template #item="{ element }">
           <div class="task">
             {{ element.title }}
+
+           <v-icon
+           icon="mdi-delete"
+           size="large"
+           class="delete-button"
+           @click="deleteTask(tasks)"
+           />
           </div>
         </template>
       </draggable>
+
+      <v-snackbar
+      v-model="snackbar"
+      :timeout="3000"
+      color="success"
+      >
+        {{ snackbarMessage }}
+      </v-snackbar>
       </v-col>
   </v-row>
 </template>
@@ -38,7 +53,12 @@ export default defineComponent({
     return {
       colum: [] as any[],
       tasks: [] as typeCard[],
-      task: {} as typeCard
+      task: {} as typeCard,
+      snackbar: {
+        show: false,
+        text: '',
+        color: ''
+      }
     };
   },
   async created() {
@@ -59,6 +79,10 @@ export default defineComponent({
     });
   },
  })    
+
+ methods: {
+  
+ }
 </script>
 
 <style scoped>
@@ -73,13 +97,15 @@ export default defineComponent({
 }
 
 .task {
-  background: #F3F4F6;
+  width: 350px;
+  height: 150px;
+  background: #FFFFFF;
   border: 1px solid #ddd;
   border-radius: 6px;
   padding: 8px;
   margin: 8px;
   cursor: grab;
-  box-shadow: #ddd 0px 1px 3px 0px, #ddd 0px 1px 2px 0px;
+  box-shadow: #EAE2FD 0px 1px 3px 0px, #EAE2FD 0px 1px 2px 0px;
   text-align: center;
 }
 
