@@ -22,7 +22,7 @@
       :key="colIndex"
     >
       <h2>{{ col.name }}</h2>
-      <draggable v-model="col.items" group="tasks" item-key="id" class="list">
+      <draggable v-model="col.items" group="tasks" item-key="id" class="list" @end="onDragEnd">
         <template #item="{ element, index }">
           <div class="task">
             {{ element.title }}
@@ -39,7 +39,7 @@
     </v-col>
   </v-row>
 
-  <!-- Snackbar -->
+
   <v-snackbar v-model="snackbar.show" :timeout="3000" :color="snackbar.color" location="top end">
     {{ snackbar.text }}
   </v-snackbar>
@@ -85,12 +85,38 @@ export default defineComponent({
     }
   },
   methods: {
-    deleteTask(colIndex: number, taskIndex: number) {
-      const removed = this.colum[colIndex].items.splice(taskIndex, 1)[0];
-      this.snackbar.text = `Card "${removed.title}" deletado com sucesso!`;
-      this.snackbar.color = "success";
-      this.snackbar.show = true;
-    },
+    async onDragEnd(evt: any) {
+      const { item, to } = evt;
+
+      const cardId = item.__vue__?.element?.id; 
+      if (!cardId) return;
+
+      const targetColumnName = this.colum.find(col => col.items === this.$refs[to.dataset.ref])?.name;
+
+      const statusMap: Record<string, string> = {
+        "A fazer": "todo",
+        "Fazendo": "doing",
+        "Feito": "done",
+      };
+
+      const newStatus = statusMap[targetColumnName || ""] || "todo";
+
+      try {
+        const card = this.tasks.find(t => t.id === cardId);
+        if (!card) return;
+        card.status = newStatus;
+        await tasksApiService.patch(card);
+
+        this.snackbar.text = `Status do card "${card.title}" atualizado para "${newStatus}"`;
+        this.snackbar.color = "success";
+      } catch (error: any) {
+        console.error(error);
+        this.snackbar.text = `Erro ao atualizar o status do card: ${error.message}`;
+        this.snackbar.color = "error";
+      } finally {
+        this.snackbar.show = true;
+      }
+    }
   },
 });
 </script>
