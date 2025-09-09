@@ -3,6 +3,6 @@ export interface typeCard {
     title: string;
     status: string;
     description: string;
-    label: string;
+    labels: string[];
     message?: string;
 }

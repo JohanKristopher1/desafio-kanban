@@ -21,12 +21,23 @@
       v-for="(col, colIndex) in colum"
       :key="colIndex"
     >
-      <h2>{{ col.name }}</h2>
+      <div class="d-flex align-center justify-space-between">
+        <h2>{{ col.name }}</h2>
+        <v-btn
+          v-if="col.name === 'A fazer'"
+          icon
+          color="primary"
+          @click="dialog = true"
+        >
+          <v-icon>mdi-plus</v-icon>
+        </v-btn>
+      </div>
       <draggable v-model="col.items" group="tasks" item-key="id" class="list" @end="onDragEnd">
         <template #item="{ element, index }">
           <div class="task">
-            {{ element.title }}
-
+            <h3>{{ element.title }}</h3>
+            <p>{{ element.description }}</p>
+            <v-chip color="#E2D6FF" variant="flat" class="pa-2">{{ element.labels }}</v-chip>
             <v-icon
               icon="mdi-delete"
               size="large"
@@ -39,6 +50,21 @@
     </v-col>
   </v-row>
 
+  <v-dialog v-model="dialog" style="width: 690px; height: 350px;">
+    <v-card>
+      <v-card-title class="text-h6">Criar Atividade</v-card-title>
+      <v-card-text>
+        <v-text-field v-model="newTask.title" label="Título" variant="outlined" required />
+        <v-textarea v-model="newTask.description" label="Descrição" variant="outlined" rows="3" />
+        <v-text-field v-model="newTask.labels" label="Labels" variant="outlined" />
+      </v-card-text>
+      <v-card-actions>
+        <v-spacer />
+        <v-btn color="#CAB3FF" variant="tonal" @click="dialog = false">Cancelar</v-btn>
+        <v-btn color="#7C3AED" variant="tonal" @click="creatTask">Salvar</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 
   <v-snackbar v-model="snackbar.show" :timeout="3000" :color="snackbar.color" location="top end">
     {{ snackbar.text }}
@@ -55,6 +81,13 @@ export default defineComponent({
   components: { draggable },
   data() {
     return {
+      dialog: false,
+      newTask: {
+        title: "",
+        description: "",
+        labels: [],
+        status: "todo",
+      },
       colum: [] as any[],
       tasks: [] as typeCard[],
       task: {} as typeCard,
@@ -72,19 +105,80 @@ export default defineComponent({
       { name: "Feito", items: [] },
     ];
 
-    try {
-      const lista: typeCard[] = await tasksApiService.getAll();
-      this.tasks = lista;
-      this.colum[0].items = this.tasks.filter((task) => task.status === "todo");
-      this.colum[1].items = this.tasks.filter((task) => task.status === "doing");
-      this.colum[2].items = this.tasks.filter((task) => task.status === "done");
-    } catch (error: any) {
-      console.error(`Erro: ${error.message}`);
-    } finally {
-      console.log("Requisição finalizada");
-    }
+    await this.getListTasks();
   },
   methods: {
+    async creatTask() {
+      try {
+        const payload = {
+          ...this.newTask,
+          labels: Array.isArray(this.newTask.labels)
+            ? this.newTask.labels
+            : [this.newTask.labels],
+        };
+
+        const createdTask = await tasksApiService.post(payload);
+        this.colum[0].items.push(createdTask);
+        this.tasks.push(createdTask);
+      } catch (error) {
+        console.error(error);
+      }
+      try {
+        const createdTask = await tasksApiService.post(this.newTask);
+        this.colum[0].items.push(createdTask);
+        this.tasks.push(createdTask);
+
+        this.dialog = false;
+        this.newTask = { title: "", description: "", labels: [], status: "todo" };
+
+        this.snackbar.text = `Card "${createdTask.title}" criado com sucesso!`;
+        this.snackbar.color = "success";
+        this.snackbar.show = true;
+        await this.getListTasks();
+      } catch (error: any) {
+        console.error(error);
+        this.snackbar.text = `Erro ao criar o card: ${error.message}`;
+        this.snackbar.color = "error";
+        this.snackbar.show = true;
+      }
+    },
+
+    async deleteTask(colIndex: number, taskIndex: number) {
+      const column = this.colum[colIndex];
+      if (!column) return;
+
+      const removed = column.items[taskIndex];
+      if (!removed) return;
+
+      try {
+        await tasksApiService.delete(removed.id);
+        column.items.splice(taskIndex, 1);
+
+        this.snackbar.text = `Card "${removed.title}" deletado com sucesso!`;
+        this.snackbar.color = "success";
+        await this.getListTasks();
+      } catch (error: any) {
+        console.error(error);
+        this.snackbar.text = `Erro ao deletar o card: ${error.message}`;
+        this.snackbar.color = "error";
+      } finally {
+        this.snackbar.show = true;
+      }
+    },
+
+    async getListTasks() {
+      try {
+        const lista: typeCard[] = await tasksApiService.getAll();
+        this.tasks = lista;
+        this.colum[0].items = this.tasks.filter((task) => task.status === "todo");
+        this.colum[1].items = this.tasks.filter((task) => task.status === "doing");
+        this.colum[2].items = this.tasks.filter((task) => task.status === "done");
+      } catch (error: any) {
+        console.error(`Erro: ${error.message}`);
+      } finally {
+        console.log("Requisição finalizada");
+      }
+    },
     async onDragEnd(evt: any) {
       const { item, to } = evt;
 
@@ -117,7 +211,7 @@ export default defineComponent({
         this.snackbar.show = true;
       }
     }
-  },
+  }    
 });
 </script>
 
