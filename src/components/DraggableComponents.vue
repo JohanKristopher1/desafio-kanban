@@ -1,16 +1,18 @@
 <template>
   <v-row>
     <v-col>
-      <v-btn prepend-icon="mdi-filter-variant" color="#7C3AED" style="width: 160px; height: 60px;">
+      <v-btn prepend-icon="mdi-filter-variant" color="#7C3AED" style="width: 160px; height: 60px;" @click="filterTasks">
         Filtrar
       </v-btn>
     </v-col>
     <v-col cols="10">
       <v-text-field
+        v-model="searchTerm"
         prepend-inner-icon="mdi-magnify"
         label="Busque por Título..."
         variant="solo-filled"
         height="48px"
+        @keyup.enter="filterTasks"
       ></v-text-field>
     </v-col>
   </v-row>
@@ -28,6 +30,7 @@
           icon
           color="primary"
           @click="dialog = true"
+          style="border-radius: 5px;"
         >
           <v-icon>mdi-plus</v-icon>
         </v-btn>
@@ -37,10 +40,10 @@
           <div class="task">
             <h3>{{ element.title }}</h3>
             <p>{{ element.description }}</p>
-            <v-chip color="#E2D6FF" variant="flat" class="pa-2">{{ element.labels }}</v-chip>
+            <v-chip v-for="value in element.labels" :key="value" color="#E2D6FF" variant="flat" class="pa-2">{{ value }}</v-chip>
             <v-icon
               icon="mdi-delete"
-              size="large"
+              size="20"
               class="delete-button"
               @click="deleteTask(colIndex, index)"
             />
@@ -56,7 +59,7 @@
       <v-card-text>
         <v-text-field v-model="newTask.title" label="Título" variant="outlined" required />
         <v-textarea v-model="newTask.description" label="Descrição" variant="outlined" rows="3" />
-        <v-text-field v-model="newTask.labels" label="Labels" variant="outlined" />
+        <v-combobox v-model="newTask.labels" :items="[]" label="Labels" variant="outlined" multiple chips tags />
       </v-card-text>
       <v-card-actions>
         <v-spacer />
@@ -82,12 +85,14 @@ export default defineComponent({
   data() {
     return {
       dialog: false,
+      searchTerm: "",
       newTask: {
         title: "",
         description: "",
         labels: [],
         status: "todo",
       },
+      filteredTasks: [] as typeCard[],
       colum: [] as any[],
       tasks: [] as typeCard[],
       task: {} as typeCard,
@@ -108,21 +113,19 @@ export default defineComponent({
     await this.getListTasks();
   },
   methods: {
-    async creatTask() {
-      try {
-        const payload = {
-          ...this.newTask,
-          labels: Array.isArray(this.newTask.labels)
-            ? this.newTask.labels
-            : [this.newTask.labels],
-        };
-
-        const createdTask = await tasksApiService.post(payload);
-        this.colum[0].items.push(createdTask);
-        this.tasks.push(createdTask);
-      } catch (error) {
-        console.error(error);
+    filterTasks() {
+      if (!this.searchTerm) {
+        this.filteredTasks = this.tasks;
+      } else {
+        const search = this.searchTerm.toLowerCase();
+        this.filteredTasks = this.tasks.filter((t) => t.title.toLowerCase().includes(search));
       }
+      this.colum[0].items = this.filteredTasks.filter((task) => task.status === "todo");
+      this.colum[1].items = this.filteredTasks.filter((task) => task.status === "doing");
+      this.colum[2].items = this.filteredTasks.filter((task) => task.status === "done");
+    },
+
+    async creatTask() {
       try {
         const createdTask = await tasksApiService.post(this.newTask);
         this.colum[0].items.push(createdTask);
@@ -216,6 +219,33 @@ export default defineComponent({
 </script>
 
 <style scoped>
+.task-card {
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  padding: 16px;
+  margin-bottom: 16px;
+  position: relative;
+}
+
+.task-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.task-description {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 12px;
+}
+
+.task-labels {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
 .column {
   flex: 1;
   background: #FFFFFF;
