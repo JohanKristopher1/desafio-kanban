@@ -37,7 +37,7 @@
       </div>
       <draggable v-model="col.items" group="tasks" item-key="id" class="list" @end="onDragEnd">
         <template #item="{ element, index }">
-          <div class="task">
+          <div class="task" @click="openTaskModal(element)">
             <h3>{{ element.title }}</h3>
             <p>{{ element.description }}</p>
             <v-chip v-for="value in element.labels" :key="value" color="#E2D6FF" variant="flat" class="pa-2">{{ value }}</v-chip>
@@ -45,7 +45,7 @@
               icon="mdi-delete"
               size="20"
               class="delete-button"
-              @click="deleteTask(colIndex, index)"
+              @click.stop="deleteTask(colIndex, index)"
             />
           </div>
         </template>
@@ -85,6 +85,8 @@ export default defineComponent({
   data() {
     return {
       dialog: false,
+      currentTaask: null as typeCard | null,
+      isEditMode: false,
       searchTerm: "",
       newTask: {
         title: "",
@@ -113,6 +115,12 @@ export default defineComponent({
     await this.getListTasks();
   },
   methods: {
+    openTaskModal(task: typeCard) {
+      this.currentTaask = { ...task };
+      this.isEditMode = true;
+      this.dialog = true;
+    },
+
     filterTasks() {
       if (!this.searchTerm) {
         this.filteredTasks = this.tasks;
