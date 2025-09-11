@@ -1,17 +1,16 @@
 <template>
-  <v-row>
-    <v-col>
-      <v-btn prepend-icon="mdi-filter-variant" color="#7C3AED" style="width: 160px; height: 60px;" @click="filterTasks">
+  <v-row class="align-center" no-gutters>
+    <v-col cols="12" sm="3" md="2" class="d-flex justify-center justify-sm-start mb-2 mb-sm-0">
+      <v-btn prepend-icon="mdi-filter-variant" color="#7C3AED" class="w-95 w-sm-95" style="height: 50px;" @click="filterTasks">
         Filtrar
       </v-btn>
     </v-col>
-    <v-col cols="10">
+    <v-col cols="12" sm="9" md="10">
       <v-text-field
         v-model="searchTerm"
         prepend-inner-icon="mdi-magnify"
         label="Busque por Título..."
         variant="solo-filled"
-        height="48px"
         @keyup.enter="filterTasks"
       ></v-text-field>
     </v-col>
@@ -22,9 +21,15 @@
       class="column"
       v-for="(col, colIndex) in colum"
       :key="colIndex"
+      cols="12"
+      sm="6"
+      md="4"
     >
-      <div class="d-flex align-center justify-space-between">
-        <h2>{{ col.name }}</h2>
+      <div class="d-flex align-center justify-space-between mb-2">
+        <h2><v-chip 
+          color="#7C3AED">
+          {{ (colIndex + 1).toString().padStart(2, '0') }}
+        </v-chip>{{ col.name }}</h2>
         <v-btn
           v-if="col.name === 'A fazer'"
           icon
@@ -35,17 +40,20 @@
           <v-icon>mdi-plus</v-icon>
         </v-btn>
       </div>
+
       <draggable v-model="col.items" group="tasks" item-key="id" class="list" @end="onDragEnd">
         <template #item="{ element, index }">
           <div class="task" @click="openTaskModal(element)">
             <h3>{{ element.title }}</h3>
             <p>{{ element.description }}</p>
+           <v-row class="task-labels">
             <v-chip v-for="value in element.labels" :key="value" color="#E2D6FF" variant="flat" class="pa-2">{{ value }}</v-chip>
+           </v-row>
             <v-icon
               icon="mdi-delete"
               size="20"
               class="delete-button"
-              @click.stop="deleteTask(colIndex, index)"
+              @click.stop="openDeleteDialog(colIndex, index)"
             />
           </div>
         </template>
@@ -69,7 +77,17 @@
     </v-card>
   </v-dialog>
 
-  <v-snackbar v-model="snackbar.show" :timeout="3000" :color="snackbar.color" location="top end">
+  <v-dialog v-model="confirmDeleteDialog" style="width: 350px; height: 666px;">
+    <v-card>
+      <v-card-title class="text-h6 text-center">Deseja exculir este item?</v-card-title>
+      <v-card-actions class="justify-center">
+        <v-btn color="#CAB3FF" variant="tonal" @click="confirmDeleteDialog = false">Cancelar</v-btn>
+        <v-btn color="#7C3AED" variant="tonal" @click="confirmDelete">Confirmar</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+
+  <v-snackbar v-model="snackbar.show" :timeout="4000" :color="snackbar.color" location="top end">
     {{ snackbar.text }}
   </v-snackbar>
 </template>
@@ -103,6 +121,8 @@ export default defineComponent({
         text: "",
         color: "success",
       },
+      confirmDeleteDialog: false,
+      taskToDelete: { colIndex: -1, taskIndex: -1} as { colIndex: number; taskIndex: number},
     };
   },
   async created() {
@@ -115,6 +135,19 @@ export default defineComponent({
     await this.getListTasks();
   },
   methods: {
+    openDeleteDialog(colIndex: number, taskIndex: number) {
+      this.taskToDelete = { colIndex, taskIndex };
+      this.confirmDeleteDialog = true;
+    },
+    async confirmDelete() {
+      const {colIndex, taskIndex } = this.taskToDelete;
+      if (colIndex >= 0 && taskIndex >= 0) {
+        await this.deleteTask(colIndex, taskIndex);
+      }
+      this.confirmDeleteDialog = false;
+      this.taskToDelete = { colIndex: -1, taskIndex: -1 };
+    },
+
     openTaskModal(task: typeCard) {
       this.currentTaask = { ...task };
       this.isEditMode = true;
@@ -248,20 +281,17 @@ export default defineComponent({
   margin-bottom: 12px;
 }
 
-.task-labels {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
 .column {
   flex: 1;
-  background: #FFFFFF;
+  background: whitesmoke;
+  border-radius: 8px;
 }
 
 .list {
-  min-height: 200px;
+  min-height: 800px;
+  padding: 12px;
   border-radius: 10px;
+  background-color: #f8f8f8;
 }
 
 .task {
@@ -271,11 +301,11 @@ export default defineComponent({
   background: #FFFFFF;
   border: 1px solid #ddd;
   border-radius: 6px;
-  padding: 8px;
-  margin: 8px;
+  padding: 14px;
+  margin: 10px 5px;
   cursor: grab;
   box-shadow: #EAE2FD 0px 1px 3px 0px, #EAE2FD 0px 1px 2px 0px;
-  text-align: center;
+  text-align: left;
 }
 
 .delete-button {
@@ -290,5 +320,14 @@ export default defineComponent({
 .delete-button:hover {
   color: #ef4444;
 }
+
+.task-labels {
+  margin-top: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 8px;
+}
+
 
 </style>
