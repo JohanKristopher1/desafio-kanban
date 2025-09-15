@@ -41,7 +41,7 @@
         </v-btn>
       </div>
 
-      <draggable v-model="col.items" group="tasks" item-key="id" class="list" @end="onDragEnd">
+      <draggable v-model="col.items" group="tasks" item-key="id" class="list" @end="onDragEnd" :data-ref="colIndex" :ref="col.name">
         <template #item="{ element, index }">
           <div class="task" @click="openTaskModal(element)">
             <h3>{{ element.title }}</h3>
@@ -226,10 +226,14 @@ export default defineComponent({
     async onDragEnd(evt: any) {
       const { item, to } = evt;
 
-      const cardId = item.__vue__?.element?.id; 
+      const cardId = item.__draggable_context?.element?.id; 
       if (!cardId) return;
 
-      const targetColumnName = this.colum.find(col => col.items === this.$refs[to.dataset.ref])?.name;
+      console.log(evt)
+
+      const targetColumnName = this.colum[to.dataset.ref];
+
+      console.log(targetColumnName)
 
       const statusMap: Record<string, string> = {
         "A fazer": "todo",
@@ -237,7 +241,8 @@ export default defineComponent({
         "Feito": "done",
       };
 
-      const newStatus = statusMap[targetColumnName || ""] || "todo";
+      const newStatus = statusMap[targetColumnName.name];
+      console.log(newStatus);
 
       try {
         const card = this.tasks.find(t => t.id === cardId);

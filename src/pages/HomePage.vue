@@ -1,11 +1,5 @@
 <template>
     <main>
-      <v-row>
-        <v-col>
-          <defineComponent />
-        </v-col>
-      </v-row>
-      
         <v-col>
           <DraggableComponents />
         </v-col>
@@ -18,11 +12,11 @@ import DraggableComponents from '@/components/DraggableComponents.vue';
 import { typeCard } from '@/types/card-types';
 
 
+
 export default defineComponent({
     name: 'HomePage',
     components: {
         DraggableComponents,
-        defineComponent
     },
     data() {
         return {
